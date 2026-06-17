@@ -1,0 +1,26 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: musiclab-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - musiclab_redis_data:/data
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: musiclab-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: musiclab
+      POSTGRES_PASSWORD: musiclab
+      POSTGRES_DB: musiclab
+    ports:
+      - "5432:5432"
+    volumes:
+      - musiclab_pg_data:/var/lib/postgresql/data
+
+volumes:
+  musiclab_pg_data:
+  musiclab_redis_data:
