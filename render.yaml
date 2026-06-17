@@ -1,0 +1,35 @@
+# Render Blueprint — MusicLab demo (one URL: SPA + API + WebSocket)
+# Dashboard → New → Blueprint → connect repo with this file.
+#
+# After deploy: Shell on web service → node dist/db/seed.js
+
+databases:
+  - name: musiclab-db
+    plan: free
+    databaseName: musiclab
+    user: musiclab
+
+services:
+  - type: web
+    name: musiclab
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_SPA
+        value: "true"
+      - key: EMBEDDED_WORKER
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: musiclab-db
+          property: connectionString
+      - key: CORS_ORIGIN
+        sync: false
+      - key: PORT
+        value: "4000"

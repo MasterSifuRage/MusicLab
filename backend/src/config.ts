@@ -23,4 +23,6 @@ export const config = {
   redisUrl: process.env.REDIS_URL ?? "",
   /** When false, only the dedicated worker container runs BullMQ jobs. */
   embeddedWorker: process.env.EMBEDDED_WORKER !== "false",
+  /** Serve built frontend from ./public (same-origin deploy: Render, VPS nginx). */
+  serveSpa: process.env.SERVE_SPA === "true",
 };

@@ -23,6 +23,7 @@ MusicLab/
 | [`docs/web MusicLab.md`](docs/web%20MusicLab.md) | Đặc tả chức năng MVP |
 | [`docs/mô tả sơ bộ.md`](docs/mô%20tả%20sơ%20bộ.md) | Kiến trúc hệ thống |
 | [`deploy/QUICK_DEPLOY.md`](deploy/QUICK_DEPLOY.md) | Deploy Vercel + Railway / VPS |
+| [`deploy/RENDER.md`](deploy/RENDER.md) | **Deploy Render — một URL (demo)** |
 
 ## Yêu cầu
 
@@ -107,6 +108,7 @@ Deploy same-origin (Nginx/VPS): để trống `VITE_API_URL`, set `VITE_USE_API=
 
 | Cách | Hướng dẫn |
 |------|-------------|
+| **Render (một URL, demo)** | [`deploy/RENDER.md`](deploy/RENDER.md) |
 | Vercel + Railway | [`deploy/QUICK_DEPLOY.md`](deploy/QUICK_DEPLOY.md) |
 | VPS + Docker + Nginx | `docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build` |
 
