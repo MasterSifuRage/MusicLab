@@ -1,7 +1,11 @@
 # Render Blueprint — MusicLab demo (one URL: SPA + API + WebSocket)
 # Dashboard → New → Blueprint → connect repo with this file.
 #
-# After deploy: Shell on web service → node dist/db/seed.js
+# LƯU Ý: Render free chỉ cho 1 PostgreSQL / tài khoản.
+# Nếu đã có DB → dùng render.web-only.yaml hoặc Cách B trong deploy/RENDER.md
+#
+# After deploy: demo accounts are created automatically on startup (see migrate.js).
+# Optional Shell (paid tier): node dist/db/seed.js — re-run sample data only.
 
 databases:
   - name: musiclab-db

@@ -47,13 +47,25 @@ Vào Web Service **musiclab** → **Environment**:
 
 → **Save Changes** → đợi redeploy.
 
-### Bước 4: Seed tài khoản demo
+### Bước 4: Tài khoản demo (tự động)
 
-Web Service → **Shell**:
+Mỗi lần Web Service **khởi động**, container chạy `node dist/db/migrate.js` trước khi bật API:
 
-```bash
-node dist/db/seed.js
+- Tạo/cập nhật schema PostgreSQL
+- **Luôn** upsert `creator@musiclab.com` và `admin@musiclab.com` (mật khẩu `demo1234`)
+- Lần đầu: thêm user mẫu, project **Summer Vibes**, báo cáo Admin
+
+**Không cần Render Shell** (tính năng trả phí). Chỉ cần deploy/redeploy là đủ.
+
+Logs deploy kỳ vọng:
+
 ```
+Database schema applied.
+Demo accounts ready: creator@musiclab.com, admin@musiclab.com (password: demo1234)
+Sample data seeded (projects, admin reports/logs).
+```
+
+(Lần sau: `Sample data already present, skipping.`)
 
 ### Bước 5: Kiểm tra
 
@@ -105,9 +117,9 @@ Dùng khi không muốn Blueprint.
 5. **Health Check Path:** `/api/health`
 6. **Create Web Service**
 
-### 3. Seed & test
+### 3. Deploy & test
 
-Giống **Cách A** bước 4–5.
+Giống **Cách A** bước 4–5 (tài khoản demo tự tạo khi service start).
 
 ---
 
@@ -149,6 +161,35 @@ Giống **Cách A** bước 4–5.
 
 ## Xử lý lỗi thường gặp
 
+### ❌ `cannot have more than one active free tier database`
+
+Render **free chỉ cho 1 PostgreSQL** trên toàn tài khoản. Blueprint `render.yaml` cố tạo `musiclab-db` mới → **failed**, web service bị **canceled**.
+
+**Chọn một trong ba cách:**
+
+#### Cách 1 — Xóa DB free cũ (nếu không dùng)
+
+1. [Render Dashboard](https://dashboard.render.com) → **PostgreSQL** → chọn DB cũ không cần
+2. **Settings** → **Delete Database**
+3. Blueprint → **Manual sync** lại (hoặc tạo Blueprint mới với `render.yaml`)
+
+#### Cách 2 — Dùng lại DB đã có (khuyến nghị nếu DB cũ còn dùng được)
+
+1. Vào Postgres **đã có** → **Connections** → copy **Internal Database URL**
+2. Tạo Web Service **thủ công** (không dùng Blueprint có `databases:`):
+   - **New +** → **Web Service** → Docker → `./Dockerfile`
+   - Set `DATABASE_URL` = Internal URL vừa copy
+   - Các biến khác như **Cách B** bên dưới
+3. Shell: `node dist/db/migrate.js` (demo accounts tạo tự động trong bước này)
+
+Hoặc Blueprint với file **`render.web-only.yaml`** (đổi tên thành `render.yaml` tạm, hoặc chọn file khi sync) — khi Apply, dán **Internal Database URL** vào `DATABASE_URL`.
+
+#### Cách 3 — Nâng plan Postgres
+
+Upgrade DB hoặc tài khoản để tạo thêm instance (trả phí).
+
+---
+
 ### Build fail
 
 - Xem **Logs** → thường do `npm ci` hoặc TypeScript.
@@ -161,8 +202,9 @@ Giống **Cách A** bước 4–5.
 
 ### Login không được / 401
 
-- Chạy lại seed: `node dist/db/seed.js` trong Shell.
+- Redeploy Web Service — migrate sẽ upsert lại demo accounts.
 - Kiểm tra `JWT_SECRET` đã set.
+- Logs có dòng `Demo accounts ready`?
 
 ### Trang trắng sau deploy
 

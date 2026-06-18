@@ -1,0 +1,27 @@
+# Blueprint — chỉ Web Service (dùng PostgreSQL ĐÃ CÓ trên Render)
+# Dùng khi tài khoản free đã có 1 DB: lỗi "cannot have more than one active free tier database"
+#
+# Trước khi Apply: copy Internal Database URL từ Postgres cũ → dán vào DATABASE_URL khi Blueprint hỏi.
+
+services:
+  - type: web
+    name: musiclab
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_SPA
+        value: "true"
+      - key: EMBEDDED_WORKER
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: PORT
+        value: "4000"

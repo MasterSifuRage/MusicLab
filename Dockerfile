@@ -32,4 +32,5 @@ COPY backend/src/db/schema.sql ./dist/db/schema.sql
 COPY --from=frontend-build /frontend/dist ./public
 RUN mkdir -p uploads renders
 EXPOSE 4000
+# migrate: schema + demo accounts (+ sample data on first run)
 CMD ["sh", "-c", "node dist/db/migrate.js && node dist/index.js"]

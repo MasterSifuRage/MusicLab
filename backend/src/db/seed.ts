@@ -2,24 +2,37 @@ import bcrypt from "bcryptjs";
 import { pool, query } from "./pool.js";
 import { uid } from "../lib/id.js";
 
-async function seed() {
-  const { rows } = await query(`SELECT COUNT(*)::int AS count FROM users`);
-  if (rows[0].count > 0) {
-    console.log("Database already seeded, skipping.");
-    await pool.end();
-    return;
-  }
+export const DEMO_PASSWORD = "demo1234";
+const CREATOR_ID = "u_creator_demo";
+const ADMIN_ID = "u_admin_demo";
 
-  const hash = await bcrypt.hash("demo1234", 10);
-  const creatorId = "u_creator_demo";
-  const adminId = "u_admin_demo";
-
+/** Always upsert Creator + Admin demo logins (safe on every deploy / migrate). */
+export async function ensureDemoAccounts() {
+  const hash = await bcrypt.hash(DEMO_PASSWORD, 10);
   await query(
     `INSERT INTO users (id, username, email, password_hash, role, bio) VALUES
      ($1, 'creator', 'creator@musiclab.com', $3, 'creator', 'Music producer & beatmaker.'),
-     ($2, 'admin', 'admin@musiclab.com', $3, 'admin', 'MusicLab administrator.')`,
-    [creatorId, adminId, hash]
+     ($2, 'admin', 'admin@musiclab.com', $3, 'admin', 'MusicLab administrator.')
+     ON CONFLICT (id) DO UPDATE SET
+       username = EXCLUDED.username,
+       email = EXCLUDED.email,
+       password_hash = EXCLUDED.password_hash,
+       role = EXCLUDED.role,
+       bio = EXCLUDED.bio`,
+    [CREATOR_ID, ADMIN_ID, hash]
   );
+  console.log("Demo accounts ready: creator@musiclab.com, admin@musiclab.com (password: demo1234)");
+}
+
+/** Extra demo users, sample project, admin reports — skipped if already present. */
+export async function seedSampleData() {
+  const { rows } = await query(`SELECT 1 FROM projects WHERE id = 'p_summer_demo' LIMIT 1`);
+  if (rows[0]) {
+    console.log("Sample data already present, skipping.");
+    return;
+  }
+
+  const hash = await bcrypt.hash(DEMO_PASSWORD, 10);
 
   const demoUsers: [string, string, string][] = [
     ["djmaster", "dj@example.com", "Active"],
@@ -63,7 +76,7 @@ async function seed() {
 
   await query(
     `INSERT INTO projects (id, owner_id, name, cover_color, status, state) VALUES ($1, $2, 'Summer Vibes', '#ef4444', 'Public', $3)`,
-    ["p_summer_demo", creatorId, JSON.stringify(state)]
+    ["p_summer_demo", CREATOR_ID, JSON.stringify(state)]
   );
 
   await query(
@@ -80,11 +93,19 @@ async function seed() {
     [uid("log_"), uid("log_")]
   );
 
-  console.log("Seed complete. Demo password for all accounts: demo1234");
+  console.log("Sample data seeded (projects, admin reports/logs).");
+}
+
+async function seed() {
+  await ensureDemoAccounts();
+  await seedSampleData();
   await pool.end();
 }
 
-seed().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const isMain = process.argv[1]?.includes("seed");
+if (isMain) {
+  seed().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
